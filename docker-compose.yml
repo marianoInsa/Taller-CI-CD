@@ -1,0 +1,10 @@
+services:
+  taller:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: taller-app
+    # env_file:
+    #   - .env
+    ports:
+      - "8000:8000"
