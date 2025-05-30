@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contador de Letras</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f4f4f4;
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        width: 100%;
+        max-width: 400px;
+      }
+      input {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        font-size: 16px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        transition: background-color 0.3s ease;
+      }
+      button:hover {
+        background-color: #2980b9;
+      }
+      #result {
+        margin-top: 20px;
+        font-weight: bold;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Contador de Caracteres</h1>
+      <p>Cuenta la cantidad de caracteres de un texto.</p>
+      <input type="text" id="userText" placeholder="Ingresa un texto..." />
+      <button onclick="contar_letras()">Contar</button>
+      <div id="result"></div>
+    </div>
+
+    <script>
+      async function contar_letras() {
+        const texto = document.getElementById("userText").value.trim();
+        try {
+          const response = await fetch("/cantidad_letras", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ texto: texto }),
+          });
+          const data = await response.json();
+          document.getElementById(
+            "result"
+          ).innerText = `Cantidad de letras: ${data.cantidad}`;
+        } catch (error) {
+          console.error("Error al contar letras:", error);
+          document.getElementById("result").innerText =
+            "Error al contar letras.";
+        }
+      }
+    </script>
+  </body>
+</html>
