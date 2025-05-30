@@ -55,15 +55,24 @@
   <body>
     <div class="container">
       <h1>Contador de Caracteres</h1>
-      <p>Cuenta la cantidad de caracteres de un texto, sin tener en cuenta los espacios en blanco.</p>
-      <input type="text" id="userText" placeholder="Ingresa un texto..." />
+      <p>Cuenta la cantidad de caracteres (letras o números) en el texto sin contar caracteres especiales.</p>
+      <input type="text" id="userTextCaracteres" placeholder="Ingresa un texto..." />
       <button onclick="contar_letras()">Contar</button>
-      <div id="result"></div>
+      <div id="resultCantCaracteres"></div>
+    </div>
+
+    <div class="container">
+      <h1>Contador de Palabras</h1>
+      <p>Cuenta la cantidad de palabras de `cant` caracteres en el texto.</p>
+      <input type="text" id="userTextPalabras" placeholder="Ingresa un texto..." />
+      <input type="number" id="cant" required min="1" placeholder="Cantidad de caracteres" />
+      <button onclick="contar_palabras()">Contar</button>
+      <div id="resultCantPalabras"></div>
     </div>
 
     <script>
       async function contar_letras() {
-        const texto = document.getElementById("userText").value.trim();
+        const texto = document.getElementById("userTextCaracteres").value.trim();
         try {
           const response = await fetch("/cantidad_letras", {
             method: "POST",
@@ -74,11 +83,33 @@
           });
           const data = await response.json();
           document.getElementById(
-            "result"
+            "resultCantCaracteres"
           ).innerText = `Cantidad de letras: ${data.cantidad}`;
         } catch (error) {
           console.error("Error al contar letras:", error);
-          document.getElementById("result").innerText =
+          document.getElementById("resultCantCaracteres").innerText =
+            "Error al contar letras.";
+        }
+      }
+
+      async function contar_palabras() {
+        const texto = document.getElementById("userTextPalabras").value.trim();
+        const cant = document.getElementById("cant").value.trim();
+        try {
+          const response = await fetch("/cantidad_palabras", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ texto: texto, cant: parseInt(cant) }),
+          });
+          const data = await response.json();
+          document.getElementById(
+            "resultCantPalabras"
+          ).innerText = `Cantidad de Palabras: ${data.cantidad}`;
+        } catch (error) {
+          console.error("Error al contar letras:", error);
+          document.getElementById("resultCantPalabras").innerText =
             "Error al contar letras.";
         }
       }
