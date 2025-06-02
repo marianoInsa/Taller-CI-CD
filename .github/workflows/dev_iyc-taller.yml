@@ -18,13 +18,13 @@ jobs:
       - name: Set up Python version
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: "3.13"
 
       - name: Create and start virtual environment
         run: |
           python -m venv venv
           source venv/bin/activate
-      
+
       - name: Install dependencies
         run: pip install -r requirements.txt
 
@@ -37,7 +37,7 @@ jobs:
     needs: test
     permissions:
       contents: read
-    
+
     steps:
       - uses: actions/checkout@v4
 
@@ -45,3 +45,30 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  notify:
+    runs-on: ubuntu-latest
+    needs: [test, scan]
+    if: always()
+    steps:
+      - name: Send Slack notification
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TEST_STATUS: ${{ needs.test.result }}
+          SCAN_STATUS: ${{ needs.scan.result }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          COMMIT_AUTHOR: ${{ github.event.head_commit.author.name }}
+          COMMIT_URL: ${{ github.event.head_commit.url }}
+        run: |
+          if [[ "$TEST_STATUS" == "success" && "$SCAN_STATUS" == "success" ]]; then
+            STATUS="✅ Integración exitosa: Entorno de Desarrollo"
+          else
+            STATUS="❌ Fallos detectados: Entorno de Desarrollo"
+            [[ "$TEST_STATUS" != "success" ]] && STATUS+="\n- Tests: $TEST_STATUS"
+            [[ "$SCAN_STATUS" != "success" ]] && STATUS+="\n- Análisis Sonar: $SCAN_STATUS"
+          fi
+
+          MESSAGE="$STATUS \n\n*Autor del commit:* $COMMIT_AUTHOR \n*Mensaje del commit:* \n>$COMMIT_MESSAGE \n*Ver en GitHub:* $COMMIT_URL"
+
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"$MESSAGE\"}" \
+            "$SLACK_WEBHOOK_URL"
