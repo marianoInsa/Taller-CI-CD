@@ -67,7 +67,7 @@ jobs:
             [[ "$SCAN_STATUS" != "success" ]] && STATUS+="\n- Análisis Sonar: $SCAN_STATUS"
           fi
 
-          MESSAGE="$STATUS \n\n*Autor del commit:* $COMMIT_AUTHOR \n*Mensaje del commit:* \n>$COMMIT_MESSAGE \nVer en GitHub: $COMMIT_URL"
+          MESSAGE="$STATUS \n\n*Autor del commit:* $COMMIT_AUTHOR \n*Mensaje del commit:* \n>$COMMIT_MESSAGE \n*Ver en GitHub:* $COMMIT_URL"
 
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"$MESSAGE\"}" \
