@@ -109,7 +109,7 @@ jobs:
             [[ "$DEPLOY_STATUS" != "success" ]] && STATUS+="\n- Análisis Sonar: $DEPLOY_STATUS"
           fi
 
-          MESSAGE="$STATUS \n\n*Autor del commit:* $COMMIT_AUTHOR \n*Mensaje del commit:* \n>$COMMIT_MESSAGE \n*Ver en GitHub:* $COMMIT_URL \n*Ver en el Portal de Azure:* $AZURE_WEBAPP_URL \n*Ver aplicación:* $DEPLOY_URL"
+          MESSAGE="$STATUS \n\n*Autor del commit:* $COMMIT_AUTHOR \n*Mensaje del commit:* \n>$COMMIT_MESSAGE \n*Ver en GitHub:* $COMMIT_URL \n*Ver en el Portal de Azure:* $AZURE_WEBAPP_URL \n*Ver aplicación:* $AZURE_DEPLOY_URL"
 
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"$MESSAGE\"}" \
