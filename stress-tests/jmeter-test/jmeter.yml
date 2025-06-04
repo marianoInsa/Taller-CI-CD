@@ -1,0 +1,46 @@
+execution:
+  - concurrency: 20
+    ramp-up: 20s
+    hold-for: 30s
+    throughput: 30
+    scenario: Loadtest_1
+
+  - concurrency: 30
+    ramp-up: 20s
+    scenario: Loadtest_2
+    delay: 15s
+
+scenarios:
+  Loadtest_1:
+    variables:
+      deploy_url: https://iyc-taller-ayajggbwd5f0d8gx.brazilsouth-01.azurewebsites.net/
+    requests:
+    - url: ${deploy_url}
+      method: GET
+      label: "Root"
+
+    - url: ${deploy_url}/static/index.html
+      method: GET
+      label: "Home page"
+  
+  Loadtest_2:
+    variables:
+      deploy_url: https://iyc-taller-ayajggbwd5f0d8gx.brazilsouth-01.azurewebsites.net/
+    
+    data-sources:
+    - path: ./data/data.csv
+      variables-names: Texto, Cant
+    
+    requests:
+    - url: ${deploy_url}/cantidad_letras
+      method: POST
+      body:
+        texto: ${Texto}
+      label: "Cantidad de Letras"
+      
+    - url: ${deploy_url}/cantidad_palabras
+      method: POST
+      body:
+        texto: ${Texto}
+        cant: ${Cant}
+      label: "Cantidad de Palabras"
