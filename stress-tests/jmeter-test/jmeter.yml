@@ -34,13 +34,14 @@ scenarios:
     requests:
     - url: ${deploy_url}/cantidad_letras
       method: POST
-      body:
-        texto: ${Texto}
+      headers:
+        Content-Type: application/json
+      body: '{"texto": "${Texto}"}'
       label: "Cantidad de Letras"
       
     - url: ${deploy_url}/cantidad_palabras
       method: POST
-      body:
-        texto: ${Texto}
-        cant: ${Cant}
+      headers:
+        Content-Type: application/json
+      body: '{"texto": "${Texto}", "cant": ${Cant}}'
       label: "Cantidad de Palabras"
