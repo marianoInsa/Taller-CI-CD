@@ -1,29 +1,83 @@
 execution:
-  - concurrency: 20
-    ramp-up: 20s
-    hold-for: 30s
-    throughput: 30
-    scenario: Loadtest_1
+# Prueba de Carga - Funcionamiento Normal
+  - scenario: Loadtest_Normal
+    concurrency: 20
+    ramp-up: 5s
+    hold-for: 20s
 
-  - concurrency: 30
-    ramp-up: 20s
-    scenario: Loadtest_2
-    delay: 15s
+# Prueba de Carga - Funcionamiento Límite
+  - scenario: Loadtest_Limit
+    concurrency: 50
+    ramp-up: 10s
+    hold-for: 30s
+    delay: 25s
+
+# Prueba de Estrés Incremental
+  - scenario: Stresstest_step1
+    concurrency: 50
+    ramp-up: 10s
+    hold-for: 30s
+    delay: 45s
+
+  - scenario: Stresstest_step2
+    concurrency: 60
+    ramp-up: 10s
+    hold-for: 30s
+    delay: 50s
+
+  - scenario: Stresstest_step3
+    concurrency: 70
+    ramp-up: 10s
+    hold-for: 30s
+    delay: 55s
+
+  - scenario: Stresstest_step4
+    concurrency: 100
+    ramp-up: 15s
+    hold-for: 30s
+    delay: 1m
 
 scenarios:
-  Loadtest_1:
+  # Prueba de Carga - Funcionamiento Normal
+  Loadtest_Normal:
     variables:
       deploy_url: https://iyc-taller-ayajggbwd5f0d8gx.brazilsouth-01.azurewebsites.net/
+    
+    data-sources:
+    - path: ./data/data.csv
+      variables-names: Texto, Cant
+
     requests:
-    - url: ${deploy_url}
-      method: GET
-      label: "Root"
+    # - url: ${deploy_url}
+    #   method: GET
+    #   label: "Root - Loadtest_Normal"
 
     - url: ${deploy_url}/static/index.html
       method: GET
-      label: "Home page"
-  
-  Loadtest_2:
+      label: "Home page - Loadtest_Normal"
+      # weight: 3
+      # think-time: 2s
+    
+    - url: ${deploy_url}/cantidad_letras
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: '{"texto": "${Texto}"}'
+      label: "Cantidad de Letras - Loadtest_Normal"
+      # weight: 2
+      # think-time: 1s
+      
+    - url: ${deploy_url}/cantidad_palabras
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: '{"texto": "${Texto}", "cant": ${Cant}}'
+      label: "Cantidad de Palabras - Loadtest_Normal"
+      # weight: 1
+      # think-time: 3s
+
+  # Prueba de Carga - Funcionamiento Límite
+  Loadtest_Limit:
     variables:
       deploy_url: https://iyc-taller-ayajggbwd5f0d8gx.brazilsouth-01.azurewebsites.net/
     
@@ -31,17 +85,157 @@ scenarios:
     - path: ./data/data.csv
       variables-names: Texto, Cant
     
-    requests:
+    requests:    
+    - url: ${deploy_url}/static/index.html
+      method: GET
+      label: "Home page - Loadtest_Normal"
+      # weight: 3
+      # think-time: 2s
+    
     - url: ${deploy_url}/cantidad_letras
       method: POST
       headers:
         Content-Type: application/json
       body: '{"texto": "${Texto}"}'
-      label: "Cantidad de Letras"
+      label: "Cantidad de Letras - Loadtest_Normal"
+      # weight: 2
+      # think-time: 1s
       
     - url: ${deploy_url}/cantidad_palabras
       method: POST
       headers:
         Content-Type: application/json
       body: '{"texto": "${Texto}", "cant": ${Cant}}'
-      label: "Cantidad de Palabras"
+      label: "Cantidad de Palabras - Loadtest_Normal"
+      # weight: 1
+      # think-time: 3s
+
+  # Prueba de Estrés Incremental Paso 1
+  Stresstest_step1:
+    variables:
+      deploy_url: https://iyc-taller-ayajggbwd5f0d8gx.brazilsouth-01.azurewebsites.net/
+  
+    data-sources:
+    - path: ./data/data.csv
+      variables-names: Texto, Cant
+
+    requests:
+    - url: ${deploy_url}/static/index.html
+      method: GET
+      label: "Home page - Loadtest_Normal"
+      # weight: 3
+      # think-time: 0.5s
+    
+    - url: ${deploy_url}/cantidad_letras
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: '{"texto": "${Texto}"}'
+      label: "Cantidad de Letras - Loadtest_Normal"
+      # weight: 2
+      # think-time: 0.5s
+      
+    - url: ${deploy_url}/cantidad_palabras
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: '{"texto": "${Texto}", "cant": ${Cant}}'
+      label: "Cantidad de Palabras - Loadtest_Normal"
+      # weight: 1
+      # think-time: 0.5s
+
+  # Prueba de Estrés Incremental Paso 2
+  Stresstest_step2:
+    variables:
+      deploy_url: https://iyc-taller-ayajggbwd5f0d8gx.brazilsouth-01.azurewebsites.net/
+  
+    data-sources:
+    - path: ./data/data.csv
+      variables-names: Texto, Cant
+
+    requests:
+    - url: ${deploy_url}/static/index.html
+      method: GET
+      label: "Home page - Loadtest_Normal"
+      # weight: 3
+      # think-time: 0.3s
+    
+    - url: ${deploy_url}/cantidad_letras
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: '{"texto": "${Texto}"}'
+      label: "Cantidad de Letras - Loadtest_Normal"
+      # weight: 2
+      # think-time: 0.3s
+      
+    - url: ${deploy_url}/cantidad_palabras
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: '{"texto": "${Texto}", "cant": ${Cant}}'
+      label: "Cantidad de Palabras - Loadtest_Normal"
+      # weight: 1
+      # think-time: 0.3s
+
+  # Prueba de Estrés Incremental Paso 3
+  Stresstest_step3:
+    variables:
+      deploy_url: https://iyc-taller-ayajggbwd5f0d8gx.brazilsouth-01.azurewebsites.net/
+  
+    data-sources:
+    - path: ./data/data.csv
+      variables-names: Texto, Cant
+
+    requests:
+    - url: ${deploy_url}/static/index.html
+      method: GET
+      label: "Home page - Loadtest_Normal"
+      # think-time: 0.1s
+    
+    - url: ${deploy_url}/cantidad_letras
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: '{"texto": "${Texto}"}'
+      label: "Cantidad de Letras - Loadtest_Normal"
+      # think-time: 0.1s
+      
+    - url: ${deploy_url}/cantidad_palabras
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: '{"texto": "${Texto}", "cant": ${Cant}}'
+      label: "Cantidad de Palabras - Loadtest_Normal"
+      # think-time: 0.1s
+
+  # Prueba de Estrés Incremental Paso 4
+  Stresstest_step4:
+    variables:
+      deploy_url: https://iyc-taller-ayajggbwd5f0d8gx.brazilsouth-01.azurewebsites.net/
+  
+    data-sources:
+    - path: ./data/data.csv
+      variables-names: Texto, Cant
+
+    requests:
+    - url: ${deploy_url}/static/index.html
+      method: GET
+      label: "Home page - Loadtest_Normal"
+    
+    - url: ${deploy_url}/cantidad_letras
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: '{"texto": "${Texto}"}'
+      label: "Cantidad de Letras - Loadtest_Normal"
+      
+    - url: ${deploy_url}/cantidad_palabras
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: '{"texto": "${Texto}", "cant": ${Cant}}'
+      label: "Cantidad de Palabras - Loadtest_Normal"
+
+reporting:
+  - module: blazemeter
