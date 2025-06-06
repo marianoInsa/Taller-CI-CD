@@ -12,6 +12,9 @@ jobs:
     permissions:
       contents: read
 
+    outputs:
+      failure: ${{ steps.extract-failures.outputs.failure }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -30,8 +33,20 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          coverage run -m pytest
-          coverage xml
+          set -o pipefail
+          coverage run -m pytest -v 2>&1 | tee result.log
+          coverage xml || true
+
+      - name: Extract failed tests
+        id: extract-failures
+        run: |
+          FAILED=$(grep -A 10 -E "short test summary info" result.log | grep -E "FAILED" || echo "No failed tests")
+          echo "Failures detected:"
+          echo "$FAILED"
+          echo "failure<<EOF" >> $GITHUB_OUTPUT
+          echo "$FAILED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
   scan:
     runs-on: ubuntu-latest
     needs: test
