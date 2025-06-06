@@ -45,7 +45,7 @@ async def test_cantidad_palabras_valido():
     assert response.json()["cantidad"] == 1
 
 @pytest.mark.asyncio
-async def test_cantidad_palabras_invalido():
+async def test_cantidad_palabras_texto_invalido():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         payload = {"text": "hola", "cant": 4}
@@ -53,7 +53,7 @@ async def test_cantidad_palabras_invalido():
     assert response.status_code == 422
 
 @pytest.mark.asyncio
-async def test_cantidad_palabras_invalido():
+async def test_cantidad_palabras_cant_invalido():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         payload = {"texto": "hola", "cantidad": 4}
@@ -61,7 +61,7 @@ async def test_cantidad_palabras_invalido():
     assert response.status_code == 422
 
 @pytest.mark.asyncio
-async def test_cantidad_palabras_invalido():
+async def test_cantidad_palabras_sin_cantidad():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         payload = {"texto": "hola"}
@@ -69,7 +69,7 @@ async def test_cantidad_palabras_invalido():
     assert response.status_code == 422
 
 @pytest.mark.asyncio
-async def test_cantidad_palabras_invalido():
+async def test_cantidad_palabras_sin_texto():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         payload = {"cant": 2}
