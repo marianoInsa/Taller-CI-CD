@@ -13,7 +13,7 @@ jobs:
       contents: read
 
     outputs:
-      failure: ${{ steps.extract-failures.outputs.failure }}
+      failures: ${{ steps.extract-failures.outputs.failures }}
       has_failures: ${{ steps.extract-failures.outputs.has_failures }}
 
     steps:
@@ -37,15 +37,17 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          coverage run -m pytest --tb=short 2>&1 | tee result.log
+          coverage run -m pytest -v --tb=short 2>&1 | tee result.log
           coverage xml || true
 
       - name: Extract failed tests
         id: extract-failures
         if: always()
         run: |
-          echo "Running extract..."
+          echo "Extracting test failures..."
+
           FAILURES=$(grep "FAILED" result.log | sed 's/^[[:space:]]*//' | head -10 || echo "")
+
           FAILURE_COUNT=$(echo "$FAILURES" | grep -c "FAILED" || echo "0")
 
           if [ "$FAILURE_COUNT" -gt 0 ]; then
@@ -81,6 +83,7 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   notify:
     runs-on: ubuntu-latest
     needs: [test, scan]
@@ -98,11 +101,11 @@ jobs:
           COMMIT_URL: ${{ github.event.head_commit.url }}
         run: |
           if [[ "$TEST_STATUS" == "success" && "$SCAN_STATUS" == "success" ]]; then
-            STATUS="✅ Integración exitosa: Entorno de Desarrollo"
-            color="good"
+            STATUS="✅ *Integración exitosa: Entorno de Desarrollo*"
+            COLOR="good"
           else
-            STATUS="❌ Fallos detectados: Entorno de Desarrollo"
-            color="danger"
+            STATUS="❌ *Fallos detectados: Entorno de Desarrollo*"
+            COLOR="danger"
           fi
 
           DETAILS=""
