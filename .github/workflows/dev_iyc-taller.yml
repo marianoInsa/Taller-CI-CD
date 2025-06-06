@@ -54,6 +54,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           TEST_STATUS: ${{ needs.test.result }}
+          TEST_FAILURE: ${{ needs.test.outputs.failure }}
           SCAN_STATUS: ${{ needs.scan.result }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           COMMIT_AUTHOR: ${{ github.event.head_commit.author.name }}
@@ -64,6 +65,7 @@ jobs:
           else
             STATUS="❌ Fallos detectados: Entorno de Desarrollo"
             [[ "$TEST_STATUS" != "success" ]] && STATUS+="\n- Tests: $TEST_STATUS"
+            [[ "$TEST_STATUS" == "failure" ]] && STATUS+="\n- Fallos en los tests: $TEST_FAILURE"
             [[ "$SCAN_STATUS" != "success" ]] && STATUS+="\n- Análisis Sonar: $SCAN_STATUS"
           fi
 
