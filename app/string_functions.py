@@ -1,9 +1,15 @@
+import re
+
 def contar_caracteres(texto: str) -> int:
     """Cuenta la cantidad de caracteres (letras o números) en el texto sin contar caracteres especiales."""
     suma = 0
-    for caracter in texto:
-        if caracter.isalnum():
-            suma += 1
+
+    if not texto.strip():
+        raise ValueError("Debe ingresar un texto como entrada.")
+    suma = len(re.findall(r'[a-zA-Z0-9]', texto))
+    if suma == 0:
+        raise ValueError("El texto no contiene letras o números.")
+
     return suma
 
 def contar_palabras(texto: str, cant: int) -> int:
@@ -11,22 +17,28 @@ def contar_palabras(texto: str, cant: int) -> int:
     if cant <= 0:
         raise ValueError("La cantidad de caracteres debe ser mayor a 0.")
     
+    if not texto.strip() or texto.isdigit():
+        raise ValueError("Debe ingresar un texto como entrada.")
+    
     palabras = texto.split()
 
     suma = 0
+    flag = False
     for palabra in palabras:
-        if any(c.isdigit() for c in palabra):
-            continue
+        if re.search(r'[a-zA-Z]', palabra):
+            flag = True
+            solo_letras = re.sub(r'[^a-zA-Z]', '', palabra)
+            if len(solo_letras) == cant:
+                suma += 1
 
-        solo_letras = ''.join(c for c in palabra if c.isalpha())
+    if not flag:
+        raise ValueError("El texto no contiene palabras válidas.")
 
-        if len(solo_letras) == cant:
-            suma += 1
     return suma
 
 if __name__ == "__main__":
     # texto = "Hola mundo! 1234"
-    texto = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi maximus leo dapibus, tincidunt felis pulvinar, accumsan tortor. Aliquam eros turpis, dapibus ut ante dictum, egestas auctor tortor. Suspendisse eu ante eget nibh suscipit auctor at in tortor. Quisque ut feugiat metus. Proin finibus cursus tincidunt. Nunc nulla leo, feugiat non."
+    texto = "10 + 20 = 30"
     print(f"Cantidad de caracteres: {contar_caracteres(texto)}")
     cant = int(input("Ingrese la cantidad de caracteres de las palabras a contar: "))
     print(f"Cantidad de palabras de {cant} caracteres: {contar_palabras(texto, cant)}")
