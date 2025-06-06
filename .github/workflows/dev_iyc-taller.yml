@@ -63,7 +63,7 @@ jobs:
             
             FORMATTED_FAILURES=""
             if [ "$FAILURE_COUNT" -gt 0 ]; then
-              FORMATTED_FAILURES=$(echo "$FAILURES" | awk '{print "• " $1}' | sort | uniq)
+              FORMATTED_FAILURES=$(echo "$FAILURES" | awk '{print "• " $1}' | grep -v "• FAILED" | sort | uniq)
             fi
             
             echo "failures<<EOF" >> $GITHUB_OUTPUT
