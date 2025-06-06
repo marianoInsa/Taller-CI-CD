@@ -14,6 +14,7 @@ jobs:
 
     outputs:
       failure: ${{ steps.extract-failures.outputs.failure }}
+      has_failures: ${{ steps.extract-failures.outputs.has_failures }}
 
     steps:
       - uses: actions/checkout@v4
@@ -32,21 +33,40 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run tests with coverage
+        id: run-tests
+        continue-on-error: true
         run: |
           set -o pipefail
-          coverage run -m pytest -v 2>&1 | tee result.log
+          coverage run -m pytest --tb=short 2>&1 | tee result.log
           coverage xml || true
 
       - name: Extract failed tests
         id: extract-failures
+        if: always()
         run: |
           echo "Running extract..."
-          FAILURES=$(pytest -v 2>&1 | awk '/short test summary info/{flag=1; next} /={3,}/{flag=0} flag' | grep FAILED || echo "No failed tests")
-          echo "Output:"
-          echo "$FAILURES"
-          echo "failure<<EOF" >> $GITHUB_OUTPUT
-          echo "$FAILURES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          FAILURES=$(grep "FAILED" result.log | sed 's/^[[:space:]]*//' | head -10 || echo "")
+          FAILURE_COUNT=$(echo "$FAILURES" | grep -c "FAILED" || echo "0")
+
+          if [ "$FAILURE_COUNT" -gt 0 ]; then
+            echo "has_failures=true" >> $GITHUB_OUTPUT
+            echo "Found $FAILURE_COUNT failed tests"
+            
+            FORMATTED_FAILURES=""
+            while IFS= read -r line; do
+              if [[ "$line" == *"FAILED"* ]]; then
+                TEST_NAME=$(echo "$line" | awk '{print $1}')
+                FORMATTED_FAILURES="${FORMATTED_FAILURES}• ${TEST_NAME}\n"
+              fi
+            done <<< "$FAILURES"
+            
+            echo "failures<<EOF" >> $GITHUB_OUTPUT
+            echo -e "$FORMATTED_FAILURES" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "has_failures=false" >> $GITHUB_OUTPUT
+            echo "failures=" >> $GITHUB_OUTPUT
+          fi
 
   scan:
     runs-on: ubuntu-latest
@@ -70,7 +90,8 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           TEST_STATUS: ${{ needs.test.result }}
-          TEST_FAILURE: ${{ needs.test.outputs.failure }}
+          TEST_FAILURES: ${{ needs.test.outputs.failures }}
+          HAS_FAILURES: ${{ needs.test.outputs.has_failures }}
           SCAN_STATUS: ${{ needs.scan.result }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           COMMIT_AUTHOR: ${{ github.event.head_commit.author.name }}
@@ -78,16 +99,35 @@ jobs:
         run: |
           if [[ "$TEST_STATUS" == "success" && "$SCAN_STATUS" == "success" ]]; then
             STATUS="✅ Integración exitosa: Entorno de Desarrollo"
+            color="good"
           else
             STATUS="❌ Fallos detectados: Entorno de Desarrollo"
-            [[ "$TEST_STATUS" != "success" ]] && STATUS+="\n- Fallos en los tests: $TEST_FAILURE"
-            [[ "$SCAN_STATUS" != "success" ]] && STATUS+="\n- Análisis Sonar: $SCAN_STATUS"
+            color="danger"
           fi
 
-          MESSAGE="$STATUS \n\n*Autor del commit:* $COMMIT_AUTHOR \n*Mensaje del commit:* \n>$COMMIT_MESSAGE \n*Ver en GitHub:* $COMMIT_URL"
+          DETAILS=""
+          if [[ "$TEST_STATUS" != "success" ]]; then
+            if [[ "$HAS_FAILURES" == "true" && -n "$TEST_FAILURES" ]]; then
+              DETAILS="${DETAILS}\n\n*🧪 Tests fallidos:*\n${TEST_FAILURES}"
+            else
+              DETAILS="${DETAILS}\n\n*🧪 Tests:* Error en la ejecución"
+            fi
+          fi
 
-          echo "Test Failures: $TEST_FAILURE"
+          if [[ "$SCAN_STATUS" != "success" ]]; then
+            DETAILS="${DETAILS}\n\n*🔍 Análisis SonarQube:* ${SCAN_STATUS}"
+          fi
+
+          MESSAGE="${STATUS}${DETAILS}\n\n*👤 Autor:* ${COMMIT_AUTHOR}\n*💬 Commit:* ${COMMIT_MESSAGE}\n*🔗 Ver en GitHub:* ${COMMIT_URL}"
 
           curl -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\"$MESSAGE\"}" \
+            --data "{
+              \"attachments\": [
+                {
+                  \"color\": \"$COLOR\",
+                  \"text\": \"$MESSAGE\",
+                  \"mrkdwn_in\": [\"text\"]
+                }
+              ]
+            }" \
             "$SLACK_WEBHOOK_URL"
