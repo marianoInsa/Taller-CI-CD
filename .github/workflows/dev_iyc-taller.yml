@@ -40,9 +40,7 @@ jobs:
       - name: Extract failed tests
         id: extract-failures
         run: |
-          FAILED=$(grep -A 10 -E "short test summary info" result.log | grep -E "FAILED" || echo "No failed tests")
-          echo "Failures detected:"
-          echo "$FAILED"
+          FAILED=$(awk '/short test summary info/{flag=1; next} /=+/{flag=0} flag' result.log | grep FAILED || echo "No failed tests")
           echo "failure<<EOF" >> $GITHUB_OUTPUT
           echo "$FAILED" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -65,7 +63,7 @@ jobs:
     needs: [test, scan]
     if: always()
     steps:
-      - name: Send Slack notification
+      - name: Prepare Slack Notification
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           TEST_STATUS: ${{ needs.test.result }}
@@ -79,13 +77,16 @@ jobs:
             STATUS="✅ Integración exitosa: Entorno de Desarrollo"
           else
             STATUS="❌ Fallos detectados: Entorno de Desarrollo"
-            [[ "$TEST_STATUS" != "success" ]] && STATUS+="\n- Tests: $TEST_STATUS"
-            [[ "$TEST_STATUS" == "failure" ]] && STATUS+="\n- Fallos en los tests: $TEST_FAILURE"
+            [[ "$TEST_STATUS" != "success" ]] && STATUS+="\n- Fallos en los tests: $TEST_FAILURE"
             [[ "$SCAN_STATUS" != "success" ]] && STATUS+="\n- Análisis Sonar: $SCAN_STATUS"
           fi
 
           MESSAGE="$STATUS \n\n*Autor del commit:* $COMMIT_AUTHOR \n*Mensaje del commit:* \n>$COMMIT_MESSAGE \n*Ver en GitHub:* $COMMIT_URL"
 
-          curl -X POST -H 'Content-type: application/json' \
+      - name: Debug TEST_FAILURE
+        run: echo "Test Failures: $TEST_FAILURE"
+
+      - name: Send Slack Notification
+        curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"$MESSAGE\"}" \
             "$SLACK_WEBHOOK_URL"
