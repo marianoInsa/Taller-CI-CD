@@ -15,6 +15,7 @@ jobs:
     outputs:
       failures: ${{ steps.extract-failures.outputs.failures }}
       has_failures: ${{ steps.extract-failures.outputs.has_failures }}
+      test_result: ${{ steps.extract-failures.outputs.test_result }}
 
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +39,10 @@ jobs:
         run: |
           set -o pipefail
           coverage run -m pytest -v --tb=short 2>&1 | tee result.log
+          TEST_EXIT_CODE=$?
           coverage xml || true
+          echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
+          exit $TEST_EXIT_CODE
 
       - name: Extract failed tests
         id: extract-failures
@@ -46,13 +50,16 @@ jobs:
         run: |
           echo "Extracting test failures..."
 
+          TEST_EXIT_CODE="${{ steps.run-tests.outputs.test_exit_code }}"
+
           FAILURES=$(grep "FAILED" result.log | sed 's/^[[:space:]]*//' | head -10 || echo "")
 
           FAILURE_COUNT=$(echo "$FAILURES" | grep -c "FAILED" || echo "0")
 
-          if [ "$FAILURE_COUNT" -gt 0 ]; then
+          if [ "$FAILURE_COUNT" -gt 0 ] || [ "$TEST_EXIT_CODE" != "0" ]; then
             echo "has_failures=true" >> $GITHUB_OUTPUT
-            echo "Found $FAILURE_COUNT failed tests"
+            echo "test_result=failure" >> $GITHUB_OUTPUT
+            echo "Found $FAILURE_COUNT failed tests (exit code: $TEST_EXIT_CODE)"
             
             FORMATTED_FAILURES=""
             while IFS= read -r line; do
@@ -67,7 +74,13 @@ jobs:
             echo "EOF" >> $GITHUB_OUTPUT
           else
             echo "has_failures=false" >> $GITHUB_OUTPUT
+            echo "test_result=success" >> $GITHUB_OUTPUT
             echo "failures=" >> $GITHUB_OUTPUT
+          fi
+
+          if [ "$TEST_EXIT_CODE" != "0" ]; then
+            echo "Tests failed with exit code $TEST_EXIT_CODE"
+            exit 1
           fi
 
   scan:
@@ -93,6 +106,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           TEST_STATUS: ${{ needs.test.result }}
+          TEST_RESULT: ${{ needs.test.outputs.test_result }}
           TEST_FAILURES: ${{ needs.test.outputs.failures }}
           HAS_FAILURES: ${{ needs.test.outputs.has_failures }}
           SCAN_STATUS: ${{ needs.scan.result }}
@@ -100,7 +114,7 @@ jobs:
           COMMIT_AUTHOR: ${{ github.event.head_commit.author.name }}
           COMMIT_URL: ${{ github.event.head_commit.url }}
         run: |
-          if [[ "$TEST_STATUS" == "success" && "$SCAN_STATUS" == "success" ]]; then
+          if [[ "$TEST_RESULT" == "success" && "$SCAN_STATUS" == "success" ]]; then
             STATUS="✅ *Integración exitosa: Entorno de Desarrollo*"
             COLOR="good"
           else
@@ -109,7 +123,7 @@ jobs:
           fi
 
           DETAILS=""
-          if [[ "$TEST_STATUS" != "success" ]]; then
+          if [[ "$TEST_RESULT" != "success" ]]; then
             if [[ "$HAS_FAILURES" == "true" && -n "$TEST_FAILURES" ]]; then
               DETAILS="${DETAILS}\n\n*🧪 Tests fallidos:*\n${TEST_FAILURES}"
             else
@@ -122,6 +136,11 @@ jobs:
           fi
 
           MESSAGE="${STATUS}${DETAILS}\n\n*👤 Autor:* ${COMMIT_AUTHOR}\n*💬 Commit:* ${COMMIT_MESSAGE}\n*🔗 Ver en GitHub:* ${COMMIT_URL}"
+
+          echo "TEST_STATUS: $TEST_STATUS"
+          echo "TEST_RESULT: $TEST_RESULT"
+          echo "HAS_FAILURES: $HAS_FAILURES"
+          echo "SCAN_STATUS: $SCAN_STATUS"
 
           curl -X POST -H 'Content-type: application/json' \
             --data "{
