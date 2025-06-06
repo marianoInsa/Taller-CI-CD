@@ -62,15 +62,12 @@ jobs:
             echo "Found $FAILURE_COUNT failed tests (exit code: $TEST_EXIT_CODE)"
             
             FORMATTED_FAILURES=""
-            while IFS= read -r line; do
-              if [[ "$line" == *"FAILED"* ]]; then
-                TEST_NAME=$(echo "$line" | awk '{print $1}')
-                FORMATTED_FAILURES="${FORMATTED_FAILURES}• ${TEST_NAME}\n"
-              fi
-            done <<< "$FAILURES"
+            if [ "$FAILURE_COUNT" -gt 0 ]; then
+              FORMATTED_FAILURES=$(echo "$FAILURES" | awk '{print "• " $1}' | sort | uniq)
+            fi
             
             echo "failures<<EOF" >> $GITHUB_OUTPUT
-            echo -e "$FORMATTED_FAILURES" >> $GITHUB_OUTPUT
+            echo "$FORMATTED_FAILURES" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
           else
             echo "has_failures=false" >> $GITHUB_OUTPUT
