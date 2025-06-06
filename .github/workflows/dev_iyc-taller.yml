@@ -63,7 +63,7 @@ jobs:
     needs: [test, scan]
     if: always()
     steps:
-      - name: Prepare Slack Notification
+      - name: Send Slack notification
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           TEST_STATUS: ${{ needs.test.result }}
@@ -83,12 +83,8 @@ jobs:
 
           MESSAGE="$STATUS \n\n*Autor del commit:* $COMMIT_AUTHOR \n*Mensaje del commit:* \n>$COMMIT_MESSAGE \n*Ver en GitHub:* $COMMIT_URL"
 
-      - name: Debug TEST_FAILURE
-        run: |
           echo "Test Failures: $TEST_FAILURE"
 
-      - name: Send Slack Notification
-        run: |
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"$MESSAGE\"}" \
             "$SLACK_WEBHOOK_URL"
