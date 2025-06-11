@@ -62,6 +62,7 @@ coverage xml
 
 - 🔸 El entorno de entrega utiliza **Azure App Services** con estrategia de despliegue **One Deploy**.
 - 🔸 El código se despliega automáticamente desde GitHub tras pasar las pruebas.
+- 🔸 [URL del despliegue](https://iyc-taller-ayajggbwd5f0d8gx.brazilsouth-01.azurewebsites.net/static/index.html)
 
 ```bash
 # Construcción y ejecución local con Docker
@@ -86,15 +87,21 @@ docker run -it --rm -v "${PWD}:/bzt-configs" blazemeter/taurus jmeter-test/jmete
 
 ```
 📦 raiz/
- ┣ 📁 app/               # Código fuente FastAPI
- ┣ 📁 tests/             # Pruebas unitarias
- ┣ 📁 stress-tests/      # Pruebas de estrés (Taurus + JMeter)
- ┣ 📁 docs/              # Documentación extendida
+ ┣ 📁 .github/workflows/        # Pipelines de CI/CD
+ ┣ 📁 app/                      # Código fuente FastAPI
+ ┣ 📁 docs/                     # Documentación extendida
+ ┣ 📁 static/                   # FrontEnd
+ ┣ 📁 stress-tests/             # Pruebas de estrés (Taurus + JMeter)
+ ┣ 📁 tests/                    # Pruebas unitarias
+ ┣ 📄 .coverage                 # Configuración para los tests
+ ┣ 📄 .dockerignore
+ ┣ 📄 .gitignore
  ┣ 📄 Dockerfile
- ┣ 📄 docker-compose.yml
- ┣ 📄 .github/workflows/ # Pipelines de CI/CD
  ┣ 📄 README.md
- ┗ 📄 requirements.txt
+ ┣ 📄 coverage.xml              # Resultados de los tests para SonarQube
+ ┣ 📄 docker-compose.yml
+ ┣ 📄 requirements.txt          # Dependencias utilizadas
+ ┗ 📄 sonar-project.properties  # Configuración de SonarQube
 ```
 
 ---
