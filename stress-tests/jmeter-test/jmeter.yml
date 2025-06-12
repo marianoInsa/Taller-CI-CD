@@ -10,32 +10,32 @@ execution:
     concurrency: 50
     ramp-up: 10s
     hold-for: 30s
-    delay: 25s
+    delay: 35s
 
 # Prueba de Estrés Incremental
   - scenario: Stresstest_step1
     concurrency: 50
     ramp-up: 10s
     hold-for: 30s
-    delay: 45s
+    delay: 75s
 
   - scenario: Stresstest_step2
     concurrency: 60
     ramp-up: 10s
     hold-for: 30s
-    delay: 50s
+    delay: 115s
 
   - scenario: Stresstest_step3
     concurrency: 70
     ramp-up: 10s
     hold-for: 30s
-    delay: 55s
+    delay: 155s
 
   - scenario: Stresstest_step4
     concurrency: 100
     ramp-up: 15s
     hold-for: 30s
-    delay: 1m
+    delay: 200s
 
 scenarios:
   # Prueba de Carga - Funcionamiento Normal
@@ -88,7 +88,7 @@ scenarios:
     requests:    
     - url: ${deploy_url}/static/index.html
       method: GET
-      label: "Home page - Loadtest_Normal"
+      label: "Home page - Loadtest_Limit"
       # weight: 3
       # think-time: 2s
     
@@ -97,7 +97,7 @@ scenarios:
       headers:
         Content-Type: application/json
       body: '{"texto": "${Texto}"}'
-      label: "Cantidad de Letras - Loadtest_Normal"
+      label: "Cantidad de Letras - Loadtest_Limit"
       # weight: 2
       # think-time: 1s
       
@@ -106,7 +106,7 @@ scenarios:
       headers:
         Content-Type: application/json
       body: '{"texto": "${Texto}", "cant": ${Cant}}'
-      label: "Cantidad de Palabras - Loadtest_Normal"
+      label: "Cantidad de Palabras - Loadtest_Limit"
       # weight: 1
       # think-time: 3s
 
@@ -122,7 +122,7 @@ scenarios:
     requests:
     - url: ${deploy_url}/static/index.html
       method: GET
-      label: "Home page - Loadtest_Normal"
+      label: "Home page - Stresstest_step1"
       # weight: 3
       # think-time: 0.5s
     
@@ -131,7 +131,7 @@ scenarios:
       headers:
         Content-Type: application/json
       body: '{"texto": "${Texto}"}'
-      label: "Cantidad de Letras - Loadtest_Normal"
+      label: "Cantidad de Letras - Stresstest_step1"
       # weight: 2
       # think-time: 0.5s
       
@@ -140,7 +140,7 @@ scenarios:
       headers:
         Content-Type: application/json
       body: '{"texto": "${Texto}", "cant": ${Cant}}'
-      label: "Cantidad de Palabras - Loadtest_Normal"
+      label: "Cantidad de Palabras - Stresstest_step1"
       # weight: 1
       # think-time: 0.5s
 
@@ -156,7 +156,7 @@ scenarios:
     requests:
     - url: ${deploy_url}/static/index.html
       method: GET
-      label: "Home page - Loadtest_Normal"
+      label: "Home page - Stresstest_step2"
       # weight: 3
       # think-time: 0.3s
     
@@ -165,7 +165,7 @@ scenarios:
       headers:
         Content-Type: application/json
       body: '{"texto": "${Texto}"}'
-      label: "Cantidad de Letras - Loadtest_Normal"
+      label: "Cantidad de Letras - Stresstest_step2"
       # weight: 2
       # think-time: 0.3s
       
@@ -174,7 +174,7 @@ scenarios:
       headers:
         Content-Type: application/json
       body: '{"texto": "${Texto}", "cant": ${Cant}}'
-      label: "Cantidad de Palabras - Loadtest_Normal"
+      label: "Cantidad de Palabras - Stresstest_step2"
       # weight: 1
       # think-time: 0.3s
 
@@ -190,7 +190,7 @@ scenarios:
     requests:
     - url: ${deploy_url}/static/index.html
       method: GET
-      label: "Home page - Loadtest_Normal"
+      label: "Home page - Stresstest_step3"
       # think-time: 0.1s
     
     - url: ${deploy_url}/cantidad_letras
@@ -198,7 +198,7 @@ scenarios:
       headers:
         Content-Type: application/json
       body: '{"texto": "${Texto}"}'
-      label: "Cantidad de Letras - Loadtest_Normal"
+      label: "Cantidad de Letras - Stresstest_step3"
       # think-time: 0.1s
       
     - url: ${deploy_url}/cantidad_palabras
@@ -206,7 +206,7 @@ scenarios:
       headers:
         Content-Type: application/json
       body: '{"texto": "${Texto}", "cant": ${Cant}}'
-      label: "Cantidad de Palabras - Loadtest_Normal"
+      label: "Cantidad de Palabras - Stresstest_step3"
       # think-time: 0.1s
 
   # Prueba de Estrés Incremental Paso 4
@@ -221,21 +221,21 @@ scenarios:
     requests:
     - url: ${deploy_url}/static/index.html
       method: GET
-      label: "Home page - Loadtest_Normal"
+      label: "Home page - Stresstest_step4"
     
     - url: ${deploy_url}/cantidad_letras
       method: POST
       headers:
         Content-Type: application/json
       body: '{"texto": "${Texto}"}'
-      label: "Cantidad de Letras - Loadtest_Normal"
+      label: "Cantidad de Letras - Stresstest_step4"
       
     - url: ${deploy_url}/cantidad_palabras
       method: POST
       headers:
         Content-Type: application/json
       body: '{"texto": "${Texto}", "cant": ${Cant}}'
-      label: "Cantidad de Palabras - Loadtest_Normal"
+      label: "Cantidad de Palabras - Stresstest_step4"
 
 reporting:
   - module: blazemeter
