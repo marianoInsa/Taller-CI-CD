@@ -6,7 +6,7 @@ def contar_caracteres(texto: str) -> int:
 
     if not texto.strip():
         raise ValueError("Debe ingresar un texto como entrada.")
-    suma = len(re.findall(r'[a-zA-Z0-9]', texto))
+    suma = len(re.findall(r'[a-zA-Z]', texto))
     if suma == 0:
         raise ValueError("El texto no contiene letras o números.")
 
